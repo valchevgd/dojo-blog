@@ -1,7 +1,9 @@
 <template>
   <div class="home">
     <h1>Home</h1>
-    <PostList :posts="posts"/>
+    <p v-if="error">{{ error }}</p>
+    <PostList v-if="posts.length" :posts="posts"/>
+    <p v-else-if="!error">Loading...</p>
   </div>
 </template>
 
@@ -13,12 +15,28 @@ export default {
   name: 'Home',
   components: {PostList},
   setup() {
-    const posts = ref([
-      {id: 1, title: 'Welcome to the blog', body: 'orem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum at risus id purus commodo dapibus. Praesent dapibus a purus ut porttitor. Nunc viverra massa ac magna accumsan, in porta urna iaculis. Pellentesque tincidunt non.'},
-      {id: 2, title: 'Top 5 CSS tips', body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam eget libero at diam porttitor luctus at at diam. Phasellus molestie sed quam id dignissim. Morbi a aliquet ipsum. Sed scelerisque nibh sit amet risus laoreet mi.'}
-    ]);
+    const posts = ref([]);
+    const error = ref(null);
 
-    return {posts};
+    const load = async () => {
+      try {
+
+        const data = await fetch('http://localhost:3000/posts');
+
+        if (!data.ok) {
+          throw Error('Something went wrong...');
+        }
+
+        posts.value = await data.json();
+
+      } catch (err) {
+        error.value = err.message;
+      }
+    };
+
+    load();
+
+    return {posts, error};
   }
 };
 </script>
